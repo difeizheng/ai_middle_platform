@@ -2,7 +2,7 @@
 
 > 企业级 AI 能力基础设施 - 构建可持续的 AI 能力体系
 
-**版本：** v0.4.0
+**版本：** v0.5.0
 **日期：** 2026 年 3 月 23 日
 
 ---
@@ -125,6 +125,14 @@ npm run dev
 - **版本管理** - Skill 版本控制和回滚
 - **智能体集成** - 智能体可调用 Skills 市场中的技能
 
+### Phase 2.4 - 运营监控（已完成）
+
+- **监控指标服务** - MetricCollector 支持 counter/gauge/histogram 三种指标类型
+- **健康检查器** - 定期检查 database/redis/embedding/llm 服务健康状态
+- **告警管理** - 告警规则配置、告警历史、告警确认
+- **仪表盘** - 可配置的监控仪表盘和数据可视化
+- **监控 API** - `/metrics/*`, `/health/*`, `/alerts/*`, `/dashboards/*`
+
 ---
 
 ## 技术栈
@@ -174,6 +182,26 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
   http://localhost:8000/api/v1/mcp/connectors/{id}/execute
 ```
 
+### 运营监控 API
+
+```bash
+# 获取监控指标概览
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/monitor/metrics/overview
+
+# 获取实时指标
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/monitor/metrics/realtime
+
+# 获取服务健康状态
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/monitor/health/services
+
+# 获取告警规则列表
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/monitor/alerts/rules
+```
+
 ---
 
 ## 开发阶段
@@ -184,7 +212,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 | Phase 2.1 | ✅ 完成 | 智能体工厂 |
 | Phase 2.2 | ✅ 完成 | MCP 连接器 |
 | Phase 2.3 | ✅ 完成 | Skills 市场 |
-| Phase 2.4 | ⏳ 规划 | 运营监控 |
+| Phase 2.4 | ✅ 完成 | 运营监控 |
 
 ---
 
