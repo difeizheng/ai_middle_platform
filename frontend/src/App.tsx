@@ -11,6 +11,7 @@ import ModelManagement from './pages/ModelManagement';
 import KnowledgeManagement from './pages/KnowledgeManagement';
 import ApplicationManagement from './pages/ApplicationManagement';
 import LogQuery from './pages/LogQuery';
+import SkillsMarket from './pages/SkillsMarket';
 
 // 受保护路由
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -39,6 +40,7 @@ function App() {
             <Route path="models" element={<ModelManagement />} />
             <Route path="knowledge" element={<KnowledgeManagement />} />
             <Route path="applications" element={<ApplicationManagement />} />
+            <Route path="skills" element={<SkillsMarket />} />
             <Route path="logs" element={<LogQuery />} />
           </Route>
         </Routes>

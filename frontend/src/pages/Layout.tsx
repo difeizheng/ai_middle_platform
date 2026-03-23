@@ -14,6 +14,7 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
   LogoutOutlined,
+  ShopOutlined,
 } from '@ant-design/icons';
 import { useUserStore } from '@/store/userStore';
 
@@ -39,6 +40,11 @@ const menuItems = [
     key: '/applications',
     icon: <AppstoreOutlined />,
     label: '应用管理',
+  },
+  {
+    key: '/skills',
+    icon: <ShopOutlined />,
+    label: 'Skills 市场',
   },
   {
     key: '/logs',
