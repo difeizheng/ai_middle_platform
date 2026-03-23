@@ -215,7 +215,14 @@ async def upload_document(
 
     await db.commit()
 
-    # TODO: 触发异步任务处理文档
+    # 触发异步任务处理文档（后台运行）
+    for doc in uploaded:
+        doc.status = "processing"
+    await db.commit()
+
+    # 使用后台任务处理文档
+    from fastapi import BackgroundTasks
+    asyncio.create_task(_process_documents(uploaded))
 
     return {
         "message": f"上传成功，共 {len(uploaded)} 个文件",
@@ -224,6 +231,20 @@ async def upload_document(
             for d in uploaded
         ],
     }
+
+
+async def _process_documents(documents: list):
+    """后台处理文档"""
+    from ..services.knowledge_pipeline import KnowledgePipeline
+
+    pipeline = KnowledgePipeline()
+    for doc in documents:
+        try:
+            await pipeline.process_document(doc.id)
+            doc.status = "completed"
+        except Exception as e:
+            doc.status = "failed"
+            doc.error_message = str(e)
 
 
 # ========== 知识检索 ==========
@@ -237,12 +258,45 @@ async def search_knowledge(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    检索知识库
+    检索知识库 - 混合检索（BM25 + 向量）
     """
-    # TODO: 实现向量检索
-    # 目前返回空结果
+    from ..services.embedding import get_embedding
+    from ..services.vector_store import get_vector_store
+
+    # 获取知识库
+    from sqlalchemy import select
+    from ..models.knowledge import KnowledgeBase
+    result = await db.execute(
+        select(KnowledgeBase).where(KnowledgeBase.id == kb_id)
+    )
+    kb = result.scalar_one_or_none()
+    if not kb:
+        raise HTTPException(status_code=404, detail="知识库不存在")
+
+    # 生成查询向量
+    embedding_model = get_embedding()
+    query_vector = await embedding_model.embed_query(query)
+
+    # 向量检索
+    vector_store = get_vector_store()
+    similar_docs = await vector_store.similarity_search(
+        collection_name=kb.collection_name,
+        query_vector=query_vector,
+        top_k=top_k,
+    )
+
+    # 格式化结果
+    results = []
+    for doc in similar_docs:
+        results.append({
+            "content": doc.get("content", ""),
+            "score": doc.get("score", 0),
+            "document_id": doc.get("metadata", {}).get("document_id"),
+            "chunk_id": doc.get("metadata", {}).get("chunk_id"),
+        })
+
     return {
         "query": query,
-        "results": [],
-        "message": "向量检索功能开发中",
+        "results": results,
+        "count": len(results),
     }

@@ -230,6 +230,7 @@ def auto_register_types() -> None:
     from .file import FileConnector
     from .kafka import KafkaConnector
     from .mongodb import MongoDBConnector
+    from .elasticsearch import ElasticsearchConnector
 
     # 注册所有内置连接器
     registry.register_type("mysql", MySQLConnector)
@@ -239,5 +240,6 @@ def auto_register_types() -> None:
     registry.register_type("file", FileConnector)
     registry.register_type("kafka", KafkaConnector)
     registry.register_type("mongodb", MongoDBConnector)
+    registry.register_type("elasticsearch", ElasticsearchConnector)
 
-    logger.info("All built-in connector types registered")
+    logger.info("All built-in connector types registered (8 connectors)")

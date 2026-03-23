@@ -11,6 +11,8 @@ from ..core.database import get_db
 from ..core.config import settings
 from ..models.user import User
 from ..auth.dependencies import get_current_user
+from ..services.llm import get_llm
+from ..services.embedding import get_embedding
 
 router = APIRouter()
 
@@ -32,8 +34,18 @@ async def chat_completions(
     if model is None:
         model = settings.DEFAULT_LLM_MODEL
 
-    # TODO: 调用模型服务
-    # 目前返回模拟响应
+    if not messages:
+        raise HTTPException(status_code=400, detail="messages 不能为空")
+
+    # 调用 LLM 服务
+    llm = get_llm()
+    response = await llm.chat(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
         "object": "chat.completion",
@@ -44,16 +56,12 @@ async def chat_completions(
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "这是 AI 中台系统的模拟响应。实际实现将调用配置的模型服务。",
+                    "content": response.get("content", ""),
                 },
                 "finish_reason": "stop",
             }
         ],
-        "usage": {
-            "prompt_tokens": 0,
-            "completion_tokens": 50,
-            "total_tokens": 50,
-        },
+        "usage": response.get("usage", {}),
     }
 
 
@@ -70,10 +78,16 @@ async def create_embeddings(
     if model is None:
         model = settings.DEFAULT_EMBEDDING_MODEL
 
-    # TODO: 调用 embedding 模型
-    # 目前返回模拟响应
+    # 调用 Embedding 服务
+    embedding_model = get_embedding()
+
     if isinstance(input, str):
         input = [input]
+
+    embeddings = []
+    for text in input:
+        vector = await embedding_model.embed_query(text)
+        embeddings.append(vector)
 
     return {
         "object": "list",
@@ -81,9 +95,9 @@ async def create_embeddings(
             {
                 "object": "embedding",
                 "index": i,
-                "embedding": [0.0] * settings.EMBEDDING_DIM,  # 模拟向量
+                "embedding": emb,
             }
-            for i in range(len(input))
+            for i, emb in enumerate(embeddings)
         ],
         "model": model,
         "usage": {
@@ -108,14 +122,21 @@ async def generate(
     if model is None:
         model = settings.DEFAULT_LLM_MODEL
 
-    # TODO: 调用模型服务
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt 不能为空")
+
+    # 调用 LLM 服务
+    llm = get_llm()
+    response = await llm.generate(
+        model=model,
+        prompt=prompt,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
     return {
         "id": f"gen-{uuid.uuid4().hex[:8]}",
         "model": model,
-        "text": "这是 AI 中台系统的模拟响应。实际实现将调用配置的模型服务。",
-        "usage": {
-            "prompt_tokens": 0,
-            "completion_tokens": 50,
-            "total_tokens": 50,
-        },
+        "text": response.get("text", ""),
+        "usage": response.get("usage", {}),
     }

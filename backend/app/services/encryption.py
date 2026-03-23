@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from ...core.logger import get_logger
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -31,23 +31,33 @@ class EncryptionService:
 
         Args:
             encryption_key: 加密密钥（32 字节 URL-safe base64 编码）
-                         如果未提供，将使用环境变量 ENCRYPTION_KEY
-                         如果环境变量也不存在，将生成一个新密钥
+                         如果未提供，将使用密钥管理器中的密钥
+                         或从环境变量 ENCRYPTION_KEY 获取
             salt: 盐值（用于密码派生）
         """
         self._key = encryption_key
         self._salt = salt.encode() if salt else None
         self._fernet: Optional[Fernet] = None
 
-        # 尝试从环境变量获取密钥
+        # 1. 尝试从参数获取密钥
+        if not self._key:
+            # 2. 尝试从密钥管理器获取
+            try:
+                from .key_manager import get_encryption_key_from_manager
+                self._key = get_encryption_key_from_manager()
+                logger.info("Using encryption key from key manager")
+            except ImportError:
+                pass
+
+        # 3. 尝试从环境变量获取密钥
         if not self._key:
             self._key = os.environ.get("ENCRYPTION_KEY")
 
-        # 如果没有密钥，生成一个新密钥（仅用于开发环境）
+        # 4. 如果没有密钥，生成一个新密钥（仅用于开发环境）
         if not self._key:
             logger.warning("No encryption key provided. Generating a new one (development only!)")
             self._key = Fernet.generate_key().decode()
-            logger.info(f"Generated encryption key: {self._key[:10]}...")
+            logger.info(f"Generated temporary encryption key: {self._key[:10]}...")
 
         # 初始化 Fernet
         if isinstance(self._key, str):
