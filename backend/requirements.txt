@@ -56,8 +56,13 @@ loguru>=0.7.0
 # HTTP Client
 httpx>=0.26.0
 
-# Redis
-redis>=5.0.0
+# MCP Connectors
+aiomysql>=0.2.0  # MySQL 异步驱动
+aiofiles>=23.0.0  # 文件异步 IO
+redis>=5.0.0  # Redis 客户端
+motor>=3.3.0  # MongoDB 异步驱动
+aiokafka>=0.9.0  # Kafka 异步客户端
+cryptography>=41.0.0  # 加密服务
 
 # Testing
 pytest>=7.4.0

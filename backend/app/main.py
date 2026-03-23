@@ -11,6 +11,7 @@ from .core.config import settings
 from .core.database import init_db, close_db
 from .core.logger import setup_logging, get_logger
 from .api.router import api_router
+from .services.mcp.registry import auto_register_types
 
 logger = get_logger(__name__)
 
@@ -25,6 +26,10 @@ async def lifespan(app: FastAPI):
     setup_logging()
     await init_db()
     logger.info("数据库初始化完成")
+
+    # 注册 MCP 连接器类型
+    auto_register_types()
+    logger.info("MCP 连接器类型注册完成")
 
     yield
 

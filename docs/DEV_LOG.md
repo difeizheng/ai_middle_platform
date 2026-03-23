@@ -265,6 +265,77 @@ pytest tests/ --cov=app --cov-report=html
 
 ---
 
+### 10. Phase 2 智能体工厂（新增）
+
+#### 智能体引擎
+- [x] 单智能体执行引擎 (`services/agents/engine.py`)
+- [x] 智能体角色系统（planner, executor, reviewer, summarizer）
+- [x] 工具调用管理
+- [x] 记忆读写
+
+#### 流程引擎
+- [x] 流程定义解析 (`services/agents/flow_engine.py`)
+- [x] 拓扑排序执行
+- [x] 条件分支处理
+- [x] 循环节点支持
+- [x] 并行执行
+
+#### 工具系统
+- [x] 工具注册表 (`services/agents/tools.py`)
+- [x] 内置工具（5 个）：web_search, code_executor, calculator, http_request, document_parser
+- [x] 自定义工具扩展
+
+#### 记忆管理
+- [x] 记忆管理器 (`services/agents/memory.py`)
+- [x] 短期/长期记忆
+- [x] 记忆检索（向量相似度）
+- [x] 记忆遗忘（基于重要性和时间）
+
+#### API 接口（12 个）
+- [x] 智能体管理：5 个接口
+- [x] 流程管理：3 个接口
+- [x] 工具管理：2 个接口
+- [x] 执行历史：1 个接口
+
+#### 数据模型
+- [x] 智能体表 (`models/agent.py`)
+- [x] 流程表
+- [x] 执行历史表
+- [x] 记忆表
+- [x] 工具表
+
+#### 数据库迁移
+- [x] 智能体工厂 SQL (`deploy/migrations/agent_factory.sql`)
+
+---
+
+### 11. Phase 2 MCP 连接器（新增）
+
+#### 连接器框架
+- [x] 连接器基类 (`services/mcp/base.py`)
+- [x] 连接器注册表 (`services/mcp/registry.py`)
+- [x] MCP 协议定义
+
+#### 内置连接器（4 个）
+- [x] MySQL 连接器 (`services/mcp/mysql.py`)
+- [x] HTTP 连接器 (`services/mcp/http.py`)
+- [x] Redis 连接器 (`services/mcp/redis.py`)
+- [x] 文件连接器 (`services/mcp/file.py`)
+
+#### API 接口（12 个）
+- [x] 连接器类型管理
+- [x] 连接器实例管理
+- [x] 连接器操作（连接、断开、健康检查、执行）
+- [x] 批量操作
+
+#### 数据库迁移
+- [x] MCP 连接器 SQL (`deploy/migrations/mcp_connectors.sql`)
+
+#### 测试
+- [x] MCP 连接器测试 (`tests/services/test_mcp.py`)
+
+---
+
 ## 完整 API 接口清单
 
 ### 认证接口
@@ -337,18 +408,31 @@ pytest tests/ --cov=app --cov-report=html
 | `/api/v1/tools/execute` | POST | 执行工具 |
 | `/api/v1/executions` | GET | 执行历史 |
 
+### MCP 连接器（Phase 2 新增）
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/v1/mcp/types` | GET | 连接器类型列表 |
+| `/api/v1/mcp/connectors` | GET/POST | 连接器实例管理 |
+| `/api/v1/mcp/connectors/{id}` | GET/DELETE | 连接器详情/删除 |
+| `/api/v1/mcp/connectors/{id}/connect` | POST | 连接连接器 |
+| `/api/v1/mcp/connectors/{id}/disconnect` | POST | 断开连接器 |
+| `/api/v1/mcp/connectors/{id}/health` | POST | 健康检查 |
+| `/api/v1/mcp/connectors/{id}/execute` | POST | 执行操作 |
+| `/api/v1/mcp/connectors/{id}/actions` | GET | 支持的操作列表 |
+| `/api/v1/mcp/stats` | GET | 注册表统计 |
+
 ---
 
 ## 代码统计
 
 | 类型 | 文件数 | 代码行数 |
 |------|--------|---------|
-| Python (Backend) | ~35 | ~7000 |
+| Python (Backend) | ~45 | ~9500 |
 | TypeScript (Frontend) | ~10 | ~1200 |
-| 配置文件 | ~13 | ~700 |
-| 测试文件 | ~10 | ~1000 |
-| 文档 | ~12 | ~4500 |
-| **总计** | **~80** | **~14400** |
+| 配置文件 | ~14 | ~800 |
+| 测试文件 | ~12 | ~1300 |
+| 文档 | ~15 | ~6000 |
+| **总计** | **~96** | **~18800** |
 
 ---
 
@@ -361,8 +445,8 @@ pytest tests/ --cov=app --cov-report=html
 4. [x] 文档完善
 
 ### Phase 2 开发
-1. [x] 智能体工厂基础开发 - 完成核心模块
-2. [ ] MCP 连接器开发 - 进行中
+1. [x] 智能体工厂基础开发
+2. [x] MCP 连接器开发 - 完成核心模块
 3. [ ] Skills 市场开发 - 待开始
 
 ### Phase 2 规划
@@ -373,7 +457,7 @@ pytest tests/ --cov=app --cov-report=html
 
 ---
 
-*Phase 2 智能体工厂开发完成，进入 MCP 连接器开发阶段*
+*Phase 2 智能体工厂和 MCP 连接器开发完成，进入 Skills 市场开发阶段*
 
 ### 后端
 - Python 3.10+
