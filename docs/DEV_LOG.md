@@ -1,7 +1,63 @@
 # AI 中台系统开发日志
 
-> 日期：2026 年 3 月 23 日
-> 阶段：Phase 1 - 测试与性能优化完成
+> 最新更新日期：2026 年 3 月 24 日
+> 阶段：Phase 2.2 - MCP 连接器扩展完成
+> Git Tag: v0.3.0
+
+---
+
+## 最新开发日志 (3 月 24 日)
+
+### Phase 2.2 MCP 连接器扩展
+
+#### 新增连接器（4 个）
+- [x] PostgreSQL 连接器 (`services/mcp/postgresql.py`)
+  - 支持 query, execute, get_tables, describe_table, get_schemas 操作
+  - 使用 asyncpg 异步驱动
+  - 连接池管理
+
+- [x] MongoDB 连接器 (`services/mcp/mongodb.py`)
+  - 支持 find, insert_one, insert_many, update_one, update_many, delete_one, delete_many, aggregate 操作
+  - 支持 get_collections, get_indexes
+  - 使用 motor 异步驱动
+  - ObjectId 自动转换
+
+- [x] Kafka 连接器 (`services/mcp/kafka.py`)
+  - 支持 produce, consume, get_topics, get_topic_info, create_topic 操作
+  - 支持消息键和头
+  - 消费者组支持
+  - 使用 aiokafka 异步客户端
+
+#### 加密服务
+- [x] 密码加密服务 (`services/encryption.py`)
+  - Fernet 对称加密（AES-128-CBC）
+  - PBKDF2 密码派生密钥
+  - 条件加密/解密函数
+  - 全局加密服务实例
+
+#### 依赖更新
+- [x] motor>=3.3.0 (MongoDB 异步驱动)
+- [x] aiokafka>=0.9.0 (Kafka 异步客户端)
+- [x] cryptography>=41.0.0 (加密服务)
+
+#### 测试
+- [x] PostgreSQL 连接器测试 (2 个用例)
+- [x] MongoDB 连接器测试 (2 个用例)
+- [x] Kafka 连接器测试 (2 个用例)
+- [x] 加密服务测试 (12 个用例)
+
+#### 文档
+- [x] 更新 MCP_CONNECTOR_DEV.md
+- [x] 更新 PHASE2_MCP_SUMMARY.md
+- [x] 更新数据库迁移脚本
+
+#### Git 提交
+- Commit: `feat: MCP 连接器扩展 - 新增 PostgreSQL/MongoDB/Kafka 连接器和加密服务`
+- Tag: v0.3.0
+
+---
+
+## 历史开发日志
 
 ---
 
