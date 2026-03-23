@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \":*)",
+      "Bash(pip install:*)",
+      "Bash(python generate_ppt.py)",
+      "Bash(cd:*)",
+      "Bash(dir *.pptx)",
+      "Bash(python generate_ai_platform_ppt.py)",
+      "Bash(dir:*)",
+      "Bash(python:*)",
+      "Bash(cp \"V3 湖北省农信 AI 中台解决方案_20260322.pptx\" \"v3_temp.zip\")",
+      "Bash(mkdir -p \"v3_pptx_extract\")",
+      "Bash(tar -xf \"v3_temp.zip\" -C \"v3_pptx_extract\")",
+      "Bash(cp:*)",
+      "Bash(mv files/ai_middle_platform/backend .)",
+      "Bash(mv files/ai_middle_platform/frontend .)",
+      "Bash(mv files/ai_middle_platform/deploy .)",
+      "Bash(mv files/ai_middle_platform/docs .)",
+      "Bash(rm -rf ai_middle_platform)",
+      "Bash(rm -rf files/ai_middle_platform)",
+      "Bash(mv backend/README.md .)",
+      "Bash(mv files/README.md .)",
+      "Bash(mv backend/docs/README.md .)",
+      "Bash(mv backend/docs/architecture.md docs/)",
+      "Bash(cp backend/docs/README.md .)",
+      "Bash(cp docs/architecture.md docs/ARCHITECTURE.md)",
+      "Bash(cp backend/docs/DEV_LOG.md docs/)",
+      "Bash(rm -rf files)",
+      "Bash(mkdir -p files)",
+      "Bash(mv backend/docs/DEV_LOG.md files/)",
+      "Bash(mv files/AI 中台系统开发总结.md .)",
+      "Bash(cp files/V2 湖北省农信 AI 中台解决方案_20260323.pptx .)",
+      "Bash(ls -la *.pptx *.md)"
+    ]
+  }
+}
