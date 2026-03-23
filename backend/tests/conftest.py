@@ -59,8 +59,9 @@ async def test_db(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture(scope="function")
-async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """创建测试客户端"""
+def client(test_db: AsyncSession) -> Generator:
+    """创建测试客户端（同步版本）"""
+    from fastapi.testclient import TestClient
 
     # 覆盖数据库依赖
     async def override_get_db():
@@ -68,7 +69,7 @@ async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    with TestClient(app=app, base_url="http://test") as ac:
         yield ac
 
     app.dependency_overrides.clear()
@@ -97,3 +98,33 @@ def test_model_data():
             "api_key": "sk-test123",
         },
     }
+
+
+@pytest.fixture
+async def auth_headers(client: AsyncClient, test_user_data: dict) -> dict:
+    """获取认证头"""
+    # 先创建用户
+    from app.core.database import AsyncSessionLocal
+    from app.models.user import User
+    from app.auth.security import get_password_hash
+
+    async with AsyncSessionLocal() as session:
+        user = User(
+            username=test_user_data["username"],
+            email=test_user_data["email"],
+            hashed_password=get_password_hash(test_user_data["password"]),
+            role=test_user_data["role"],
+        )
+        session.add(user)
+        await session.commit()
+
+    # 登录获取 token
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "username": test_user_data["username"],
+            "password": test_user_data["password"],
+        },
+    )
+    token = response.json().get("access_token", "")
+    return {"Authorization": f"Bearer {token}"}

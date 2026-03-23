@@ -12,6 +12,7 @@ from .core.database import init_db, close_db
 from .core.logger import setup_logging, get_logger
 from .api.router import api_router
 from .services.mcp.registry import auto_register_types
+from .services.skills import auto_register_builtin_skills
 
 logger = get_logger(__name__)
 
@@ -31,6 +32,10 @@ async def lifespan(app: FastAPI):
     auto_register_types()
     logger.info("MCP 连接器类型注册完成")
 
+    # 注册内置 Skills
+    auto_register_builtin_skills()
+    logger.info("Skills 市场初始化完成")
+
     yield
 
     # 关闭时执行
@@ -42,7 +47,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="企业级 AI 中台系统 - 模型工厂 | 知识工厂 | 智能体工厂",
+    description="企业级 AI 中台系统 - 模型工厂 | 知识工厂 | 智能体工厂 | Skills 市场",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",

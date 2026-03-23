@@ -12,6 +12,7 @@ from .logs import router as logs_router
 from .scenarios import router as scenarios_router
 from .agents import router as agents_router  # Phase 2 新增
 from .mcp import router as mcp_router  # Phase 2 MCP 连接器
+from .skills import router as skills_router  # Phase 2.3 Skills 市场
 
 # 创建主路由
 api_router = APIRouter()
@@ -27,3 +28,4 @@ api_router.include_router(logs_router, prefix="/logs", tags=["日志管理"])
 api_router.include_router(scenarios_router, prefix="/scenarios", tags=["试点场景"])
 api_router.include_router(agents_router, prefix="/agents", tags=["智能体工厂"])  # Phase 2 新增
 api_router.include_router(mcp_router, prefix="/mcp", tags=["MCP 连接器"])  # Phase 2 MCP 连接器
+api_router.include_router(skills_router, prefix="/skills", tags=["Skills 市场"])  # Phase 2.3 Skills 市场

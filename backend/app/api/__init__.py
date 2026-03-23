@@ -9,6 +9,10 @@ from .knowledge import router as knowledge_router
 from .inference import router as inference_router
 from .applications import router as applications_router
 from .logs import router as logs_router
+from .scenarios import router as scenarios_router
+from .agents import router as agents_router  # Phase 2
+from .mcp import router as mcp_router  # Phase 2.2
+from .skills import router as skills_router  # Phase 2.3
 
 # 创建主路由
 api_router = APIRouter()
@@ -21,3 +25,7 @@ api_router.include_router(knowledge_router, prefix="/knowledge", tags=["知识�
 api_router.include_router(inference_router, prefix="/inference", tags=["模型推理"])
 api_router.include_router(applications_router, prefix="/applications", tags=["应用管理"])
 api_router.include_router(logs_router, prefix="/logs", tags=["日志管理"])
+api_router.include_router(scenarios_router, prefix="/scenarios", tags=["试点场景"])
+api_router.include_router(agents_router, prefix="/agents", tags=["智能体工厂"])  # Phase 2
+api_router.include_router(mcp_router, prefix="/mcp", tags=["MCP 连接器"])  # Phase 2.2
+api_router.include_router(skills_router, prefix="/skills", tags=["Skills 市场"])  # Phase 2.3

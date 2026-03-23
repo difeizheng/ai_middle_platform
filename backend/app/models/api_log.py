@@ -1,7 +1,7 @@
 """
 API 日志和审计日志模型
 """
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, JSON, BigInteger, Index
+from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, JSON, BigInteger, Index, ForeignKey
 from sqlalchemy.sql import func
 from ..core.database import Base
 

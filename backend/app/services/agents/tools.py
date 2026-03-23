@@ -336,6 +336,72 @@ class DocumentParserTool(BaseTool):
         )
 
 
+class SkillInvokerTool(BaseTool):
+    """
+    Skill 调用工具
+
+    允许智能体调用 Skills 市场中的 Skills
+    """
+
+    def __init__(self):
+        self._skill_registry = None
+
+    def _get_skill_registry(self):
+        """延迟获取 Skill 注册表"""
+        if self._skill_registry is None:
+            from ...services.skills import get_registry
+            self._skill_registry = get_registry()
+        return self._skill_registry
+
+    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        调用 Skill
+
+        Args:
+            params: {
+                "skill_name": str,  # Skill 名称
+                "skill_params": Dict,  # Skill 执行参数
+            }
+        """
+        skill_name = params.get("skill_name", "")
+        skill_params = params.get("skill_params", {})
+
+        if not skill_name:
+            return {"error": "Skill 名称不能为空"}
+
+        try:
+            registry = self._get_skill_registry()
+            result = await registry.execute(skill_name, skill_params)
+
+            return {
+                "success": True,
+                "skill_name": skill_name,
+                "result": result,
+            }
+
+        except ValueError as e:
+            return {"error": str(e)}
+        except Exception as e:
+            return {"error": f"Skill 执行失败：{str(e)}"}
+
+    def get_definition(self) -> ToolDefinition:
+        # 获取已注册的 Skills 列表
+        registry = self._get_skill_registry()
+        available_skills = registry.list_skills()
+
+        return ToolDefinition(
+            name="skill_invoker",
+            description="调用 Skills 市场中的技能",
+            category="integration",
+            inputs=[
+                {"name": "skill_name", "type": "string", "required": True, "description": "Skill 名称", "options": [s["name"] for s in available_skills]},
+                {"name": "skill_params", "type": "object", "required": True, "description": "Skill 执行参数"},
+            ],
+            outputs=[{"name": "result", "type": "object", "description": "Skill 执行结果"}],
+            config={"available_skills": [s["name"] for s in available_skills]},
+        )
+
+
 class ToolRegistry:
     """
     工具注册表
@@ -352,6 +418,7 @@ class ToolRegistry:
         self.register(CalculatorTool())
         self.register(HTTPRequestTool())
         self.register(DocumentParserTool())
+        self.register(SkillInvokerTool())  # Phase 2.3: Skill 调用工具
 
     def register(self, tool: BaseTool, name: Optional[str] = None) -> None:
         """注册工具"""

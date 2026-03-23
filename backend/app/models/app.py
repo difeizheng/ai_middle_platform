@@ -1,7 +1,7 @@
 """
 应用和 API Key 相关模型
 """
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, ForeignKey, Text
 from sqlalchemy.sql import func
 from ..core.database import Base
 

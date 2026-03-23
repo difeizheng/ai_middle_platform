@@ -170,7 +170,9 @@ async def customer_service_chat(
         session_id: 会话 ID
         kb_id: 知识库 ID
     """
-    from ..services.scenarios.smart 客服 import get_customer_service
+    import importlib
+    customer_service_module = importlib.import_module("..services.scenarios.smart 客服", __package__)
+    get_customer_service = customer_service_module.get_customer_service
 
     try:
         customer_service = get_customer_service()
@@ -205,7 +207,9 @@ async def create_session(
     db: AsyncSession = Depends(get_db),
 ):
     """创建客服会话"""
-    from ..services.scenarios.smart 客服 import get_customer_service
+    import importlib
+    customer_service_module = importlib.import_module("..services.scenarios.smart 客服", __package__)
+    get_customer_service = customer_service_module.get_customer_service
 
     customer_service = get_customer_service()
     session_id = customer_service.create_session(

@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional, Dict, Any
 
-from ...core.database import get_db
-from ...models.user import User
-from ...auth.dependencies import get_current_user
-from ...api.middleware import rate_limit
-from .base import ConnectorConfig, ConnectorType, ConnectorStatus
-from .registry import get_registry, ConnectorRegistry
+from app.core.database import get_db
+from app.models.user import User
+from app.auth.dependencies import get_current_user
+from app.api.middleware import rate_limit
+from app.services.mcp.base import ConnectorConfig, ConnectorType, ConnectorStatus
+from app.services.mcp.registry import get_registry, ConnectorRegistry
 
 router = APIRouter()
 

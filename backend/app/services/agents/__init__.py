@@ -1,16 +1,15 @@
 """
 智能体工厂服务层
 """
-from .engine import AgentEngine, FlowEngine
-from .orchestrator import FlowOrchestrator
+from .engine import AgentEngine
+from .flow_engine import FlowEngine
 from .memory import AgentMemoryManager
-from .tools import ToolRegistry, builtin_tools
+from .tools import ToolRegistry, get_builtin_tools
 
 __all__ = [
     "AgentEngine",
     "FlowEngine",
-    "FlowOrchestrator",
     "AgentMemoryManager",
     "ToolRegistry",
-    "builtin_tools",
+    "get_builtin_tools",
 ]

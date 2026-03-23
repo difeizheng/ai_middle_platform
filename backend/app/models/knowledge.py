@@ -67,7 +67,7 @@ class KnowledgeDocument(Base):
 
     # 处理结果
     chunk_count = Column(Integer, default=0)  # 生成的分片数
-    metadata = Column(JSON, default=dict)  # 元数据
+    doc_metadata = Column(JSON, default=dict)  # 元数据
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -101,7 +101,7 @@ class KnowledgeChunk(Base):
     end_pos = Column(Integer)  # 在原文档中的结束位置
 
     # 元数据
-    metadata = Column(JSON, default=dict)  # 页码、章节等
+    chunk_metadata = Column(JSON, default=dict)  # 页码、章节等
 
     # 使用统计
     hit_count = Column(Integer, default=0)  # 被检索命中次数
