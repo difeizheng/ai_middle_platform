@@ -14,6 +14,8 @@ from .api.router import api_router
 from .services.mcp.registry import auto_register_types
 from .services.skills import auto_register_builtin_skills
 from .services.health_checker import start_health_checker, stop_health_checker
+from .services.notification import setup_notification_channels
+from .services.alert_service import start_alert_service, stop_alert_service
 
 logger = get_logger(__name__)
 
@@ -37,14 +39,24 @@ async def lifespan(app: FastAPI):
     auto_register_builtin_skills()
     logger.info("Skills 市场初始化完成")
 
+    # 初始化通知渠道
+    setup_notification_channels()
+    logger.info("通知渠道初始化完成")
+
     # 启动健康检查器
     await start_health_checker(interval=60)
     logger.info("健康检查器已启动")
+
+    # 启动告警检查器
+    await start_alert_service(interval=60)
+    logger.info("告警检查器已启动")
 
     yield
 
     # 关闭时执行
     logger.info("AI 中台系统关闭中...")
+    await stop_alert_service()
+    logger.info("告警检查器已停止")
     await stop_health_checker()
     logger.info("健康检查器已停止")
     await close_db()

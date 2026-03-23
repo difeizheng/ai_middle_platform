@@ -19,6 +19,7 @@ from app.models.monitor import (
     ServiceDependency,
 )
 from app.services.metrics import get_metric_collector, get_request_metrics
+from app.services.notification import get_notifier, send_alert
 
 router = APIRouter()
 

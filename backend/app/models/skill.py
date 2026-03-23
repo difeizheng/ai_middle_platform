@@ -167,3 +167,68 @@ class SkillInstallation(Base):
         Index("idx_skill_installations_app", "app_id"),
         Index("idx_skill_installations_skill", "skill_id"),
     )
+
+
+class SkillReview(Base):
+    """
+    Skill 评论表
+
+    用户可以对已安装的 Skill 进行评论
+    """
+    __tablename__ = "skill_reviews"
+
+    id = Column(String(32), primary_key=True, default=lambda: f"sr_{uuid.uuid4().hex[:8]}")
+    skill_id = Column(String(32), ForeignKey("skills.id"), nullable=False, comment="Skill ID")
+    user_id = Column(String(32), ForeignKey("users.id"), nullable=False, comment="用户 ID")
+    rating = Column(Integer, nullable=False, comment="评分 (1-5)")
+    title = Column(String(128), comment="评论标题")
+    content = Column(Text, comment="评论内容")
+
+    # 状态
+    is_visible = Column(Boolean, default=True, comment="是否可见")
+    is_verified_purchase = Column(Boolean, default=False, comment="是否已验证购买/安装")
+
+    # 互动
+    helpful_count = Column(Integer, default=0, comment="有用计数")
+    not_helpful_count = Column(Integer, default=0, comment="无用计数")
+
+    # 元数据
+    created_at = Column(DateTime, default=datetime.utcnow, comment="创建时间")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="更新时间")
+
+    # 关系
+    skill = relationship("Skill", back_populates="reviews")
+
+    # 索引
+    __table_args__ = (
+        Index("idx_skill_reviews_skill", "skill_id"),
+        Index("idx_skill_reviews_user", "user_id"),
+        Index("idx_skill_reviews_rating", "rating"),
+    )
+
+
+class SkillRating(Base):
+    """
+    Skill 评分表
+
+    记录用户对 Skill 的评分（与评论分离，支持只评分不评论）
+    """
+    __tablename__ = "skill_ratings"
+
+    id = Column(String(32), primary_key=True, default=lambda: f"srt_{uuid.uuid4().hex[:8]}")
+    skill_id = Column(String(32), ForeignKey("skills.id"), nullable=False, comment="Skill ID")
+    user_id = Column(String(32), ForeignKey("users.id"), nullable=False, comment="用户 ID")
+    rating = Column(Integer, nullable=False, comment="评分 (1-5)")
+
+    # 元数据
+    created_at = Column(DateTime, default=datetime.utcnow, comment="创建时间")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="更新时间")
+
+    # 索引 - 一个用户只能对一个 Skill 评分一次
+    __table_args__ = (
+        Index("idx_skill_ratings_skill_user", "skill_id", "user_id", unique=True),
+    )
+
+
+# 添加关系到 Skill 模型
+Skill.reviews = relationship("SkillReview", back_populates="skill", cascade="all, delete-orphan")

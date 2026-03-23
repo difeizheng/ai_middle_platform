@@ -2,7 +2,7 @@
 应用配置管理
 """
 from pydantic_settings import BaseSettings
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import os
 
 
@@ -110,6 +110,36 @@ class Settings(BaseSettings):
     ALLOWED_FILE_TYPES: List[str] = [".pdf", ".docx", ".xlsx", ".pptx", ".txt", ".md"]
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     MAX_UPLOAD_FILES: int = 10
+
+    # ========== 通知配置 ==========
+    NOTIFICATION_CHANNELS: Optional[Dict[str, Any]] = None
+    # 格式:
+    # NOTIFICATION_CHANNELS = {
+    #     "email_alerts": {
+    #         "type": "email",
+    #         "config": {
+    #             "smtp_server": "smtp.example.com",
+    #             "smtp_port": 587,
+    #             "username": "user@example.com",
+    #             "password": "xxx",
+    #             "from_addr": "alerts@example.com",
+    #             "to_addrs": ["admin@example.com"],
+    #         }
+    #     },
+    #     "dingtalk": {
+    #         "type": "dingtalk",
+    #         "config": {
+    #             "webhook_url": "https://oapi.dingtalk.com/robot/send?access_token=xxx",
+    #             "secret": "xxx",
+    #         }
+    #     },
+    #     "wecom": {
+    #         "type": "wecom",
+    #         "config": {
+    #             "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx",
+    #         }
+    #     },
+    # }
 
     class Config:
         env_file = ".env"
