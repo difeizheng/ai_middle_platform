@@ -1,7 +1,7 @@
 """
 模型注册和管理相关模型
 """
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, JSON, Text
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, JSON, Text, ForeignKey
 from sqlalchemy.sql import func
 from ..core.database import Base
 
@@ -56,7 +56,7 @@ class ModelRegistry(Base):
     __tablename__ = "model_registry"
 
     id = Column(Integer, primary_key=True, index=True)
-    model_id = Column(Integer, foreign_key="models.id")
+    model_id = Column(Integer, ForeignKey("models.id"))
 
     # 版本信息
     version = Column(String(50))  # 模型版本

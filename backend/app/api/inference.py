@@ -11,8 +11,8 @@ from ..core.database import get_db
 from ..core.config import settings
 from ..models.user import User
 from ..auth.dependencies import get_current_user
-from ..services.llm import get_llm
-from ..services.embedding import get_embedding
+from ..services.llm import LLMService
+from ..services.embedding import EmbeddingService
 
 router = APIRouter()
 
@@ -38,9 +38,8 @@ async def chat_completions(
         raise HTTPException(status_code=400, detail="messages 不能为空")
 
     # 调用 LLM 服务
-    llm = get_llm()
-    response = await llm.chat(
-        model=model,
+    llm_service = LLMService(model_name=model)
+    response = await llm_service.chat(
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
@@ -56,12 +55,16 @@ async def chat_completions(
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": response.get("content", ""),
+                    "content": response.content,
                 },
                 "finish_reason": "stop",
             }
         ],
-        "usage": response.get("usage", {}),
+        "usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": response.tokens_used,
+            "total_tokens": response.tokens_used,
+        },
     }
 
 
@@ -79,15 +82,15 @@ async def create_embeddings(
         model = settings.DEFAULT_EMBEDDING_MODEL
 
     # 调用 Embedding 服务
-    embedding_model = get_embedding()
+    embedding_service = EmbeddingService(model_name=model)
 
     if isinstance(input, str):
         input = [input]
 
     embeddings = []
     for text in input:
-        vector = await embedding_model.embed_query(text)
-        embeddings.append(vector)
+        result = await embedding_service.embed(text)
+        embeddings.append(result.embedding)
 
     return {
         "object": "list",
@@ -126,10 +129,9 @@ async def generate(
         raise HTTPException(status_code=400, detail="prompt 不能为空")
 
     # 调用 LLM 服务
-    llm = get_llm()
-    response = await llm.generate(
-        model=model,
-        prompt=prompt,
+    llm_service = LLMService(model_name=model)
+    response = await llm_service.chat(
+        messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens,
     )

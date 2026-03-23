@@ -13,6 +13,7 @@ from .core.logger import setup_logging, get_logger
 from .api.router import api_router
 from .services.mcp.registry import auto_register_types
 from .services.skills import auto_register_builtin_skills
+from .services.health_checker import start_health_checker, stop_health_checker
 
 logger = get_logger(__name__)
 
@@ -36,10 +37,16 @@ async def lifespan(app: FastAPI):
     auto_register_builtin_skills()
     logger.info("Skills 市场初始化完成")
 
+    # 启动健康检查器
+    await start_health_checker(interval=60)
+    logger.info("健康检查器已启动")
+
     yield
 
     # 关闭时执行
     logger.info("AI 中台系统关闭中...")
+    await stop_health_checker()
+    logger.info("健康检查器已停止")
     await close_db()
 
 

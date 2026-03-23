@@ -45,6 +45,21 @@ async def get_db() -> AsyncSession:
             await session.close()
 
 
+async def get_db_session() -> AsyncSession:
+    """
+    获取数据库会话（直接调用用，用于服务层）
+    """
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
 async def init_db():
     """
     初始化数据库（创建表）

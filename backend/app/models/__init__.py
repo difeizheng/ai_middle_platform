@@ -7,6 +7,15 @@ from .knowledge import KnowledgeBase, KnowledgeDocument, KnowledgeChunk
 from .api_log import APILog, AuditLog
 from .app import Application, APIKey
 from .agent import Agent, AgentFlow, AgentExecution, AgentMemory, AgentTool
+from .skill import Skill, SkillCategory, SkillVersion, SkillInstallation
+from .monitor import (
+    MonitorMetric,
+    SystemHealth,
+    AlertRule,
+    AlertHistory,
+    DashboardConfig,
+    ServiceDependency,
+)
 
 __all__ = [
     "User",
@@ -24,4 +33,14 @@ __all__ = [
     "AgentExecution",
     "AgentMemory",
     "AgentTool",
+    "Skill",
+    "SkillCategory",
+    "SkillVersion",
+    "SkillInstallation",
+    "MonitorMetric",
+    "SystemHealth",
+    "AlertRule",
+    "AlertHistory",
+    "DashboardConfig",
+    "ServiceDependency",
 ]
