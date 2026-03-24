@@ -31,7 +31,18 @@
       "Bash(mv backend/docs/DEV_LOG.md files/)",
       "Bash(mv files/AI 中台系统开发总结.md .)",
       "Bash(cp files/V2 湖北省农信 AI 中台解决方案_20260323.pptx .)",
-      "Bash(ls -la *.pptx *.md)"
+      "Bash(ls -la *.pptx *.md)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git tag:*)",
+      "Bash(git add:*)",
+      "Bash(curl:*)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(taskkill:*)",
+      "Bash(git restore:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

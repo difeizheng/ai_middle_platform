@@ -4,6 +4,7 @@ FastAPI 应用主入口
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 import time
 
@@ -16,6 +17,13 @@ from .services.skills import auto_register_builtin_skills
 from .services.health_checker import start_health_checker, stop_health_checker
 from .services.notification import setup_notification_channels
 from .services.alert_service import start_alert_service, stop_alert_service
+from .core.exceptions import (
+    AppException,
+    app_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+    global_exception_handler,
+)
 
 logger = get_logger(__name__)
 
@@ -118,6 +126,12 @@ async def add_headers(request: Request, call_next):
 app.include_router(api_router, prefix="/api/v1")
 
 
+# 注册异常处理器
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, global_exception_handler)
+
+
 # 健康检查
 @app.get("/health", tags=["Health"])
 async def health_check():
@@ -137,16 +151,3 @@ async def root():
         "description": "企业级 AI 中台系统",
         "docs": "/docs",
     }
-
-
-# 异常处理
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Global exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "code": "INTERNAL_ERROR",
-            "message": "内部错误，请联系管理员",
-        },
-    )

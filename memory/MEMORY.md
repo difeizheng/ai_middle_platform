@@ -1,6 +1,6 @@
 # AI 中台项目记忆
 
-> 最后更新：2026 年 3 月 21 日
+> 最后更新：2026 年 3 月 24 日
 
 ---
 
@@ -9,6 +9,31 @@
 **客户：** 湖北省农信社
 **项目：** AI 中台解决方案宣讲 PPT
 **时间：** 2026 年 3 月
+
+---
+
+## 开发进度
+
+### 当前版本：v0.6.0
+
+### 已完成阶段
+- **Phase 1** - 基础平台（模型工厂、知识工厂、API 网关、应用管理）
+- **Phase 2.1** - 智能体工厂（单智能体引擎、流程引擎、工具系统、记忆管理）
+- **Phase 2.2** - MCP 连接器（10 个内置连接器：MySQL/PostgreSQL/HTTP/Redis/File/Kafka/MongoDB/Elasticsearch/Oracle/SQLServer）
+- **Phase 2.3** - Skills 市场（4 个内置 Skills：data_analysis/report_generator/code_review/notification）
+- **Phase 2.4** - 运营监控（监控指标服务、健康检查器、告警管理、仪表盘、告警通知集成）
+
+### 短期任务完成情况（2026-03-24）
+- ✅ MCP 连接器扩展：Oracle 连接器、SQL Server 连接器
+- ✅ Skills 市场增强：评分和评论系统、版本回滚功能
+- ✅ 运营监控增强：告警通知集成（邮件/钉钉/企业微信/Webhook）
+
+### 技术栈更新
+- **后端：** Python 3.10+, FastAPI, SQLAlchemy
+- **数据库：** PostgreSQL 15+, Redis 7+
+- **向量库：** Milvus 2.3+ / Qdrant
+- **AI 框架：** LangChain, vLLM, Transformers
+- **前端：** React, TypeScript, Ant Design
 
 ---
 

@@ -8,10 +8,17 @@ from typing import List, Optional, Dict, Any
 import time
 
 from app.core.database import get_db
+from app.core.exceptions import NotFoundError, ForbiddenError
 from app.models.agent import Agent, AgentFlow, AgentExecution, AgentMemory, AgentTool
 from app.models.user import User
 from app.auth.dependencies import get_current_user
 from app.api.middleware import rate_limit
+from app.schemas import (
+    AgentCreate,
+    AgentUpdate,
+    AgentExecuteRequest,
+    AgentResponse,
+)
 from app.services.agents.engine import AgentEngine
 from app.services.agents.flow_engine import FlowEngine
 from app.services.agents.tools import ToolRegistry
@@ -59,23 +66,27 @@ async def list_agents(
 
 @router.post("/agents")
 async def create_agent(
-    name: str = Body(..., description="智能体名称"),
-    description: str = Body(None, description="智能体描述"),
-    role: str = Body("executor", description="角色：planner, executor, reviewer, summarizer"),
-    model_id: int = Body(None, description="绑定的模型 ID"),
-    config: Dict[str, Any] = Body(default_factory=dict, description="智能体配置"),
-    tools: List[Dict] = Body(default_factory=list, description="绑定工具列表"),
+    agent_data: AgentCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """创建智能体"""
+    """
+    创建智能体
+
+    请求体验证：
+    - name: 1-100 字符，只能包含中文、英文、数字、下划线和连字符
+    - description: 最多 500 字符
+    - role: planner | executor | reviewer | summarizer | custom
+    - config: 智能体配置对象
+    - tools: 工具列表
+    """
     agent = Agent(
-        name=name,
-        description=description,
-        role=role,
-        model_id=model_id,
-        config=config,
-        tools=tools,
+        name=agent_data.name,
+        description=agent_data.description,
+        role=agent_data.role,
+        model_id=agent_data.model_id,
+        config=agent_data.config,
+        tools=agent_data.tools,
         created_by=current_user.id,
     )
 
@@ -199,22 +210,28 @@ async def delete_agent(
 @rate_limit(max_requests=30, window=60)
 async def execute_agent(
     agent_id: int,
-    task: str = Body(..., description="任务描述"),
-    session_id: Optional[str] = Body(None, description="会话 ID"),
-    stream: bool = Body(False, description="是否流式输出"),
+    execute_request: AgentExecuteRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """执行智能体任务"""
+    """
+    执行智能体任务
+
+    请求体验证：
+    - task: 1-5000 字符，任务描述
+    - session_id: 可选，会话 ID
+    - stream: 是否流式输出，默认 false
+    - max_steps: 1-50，最大步骤数，默认 10
+    """
     # 获取智能体配置
     result = await db.execute(select(Agent).where(Agent.id == agent_id))
     agent = result.scalar_one_or_none()
 
     if not agent:
-        raise HTTPException(status_code=404, detail="智能体不存在")
+        raise NotFoundError(resource="智能体", detail=f"智能体 ID {agent_id} 不存在")
 
     if not agent.is_active:
-        raise HTTPException(status_code=400, detail="智能体未激活")
+        raise ForbiddenError(message="智能体未激活", detail="请先激活智能体")
 
     try:
         # 创建智能体引擎
@@ -229,17 +246,21 @@ async def execute_agent(
         # 执行任务
         from ...services.agents.engine import AgentContext
         context = AgentContext(
-            session_id=session_id or str(time.time()),
-            task=task,
+            session_id=execute_request.session_id or str(time.time()),
+            task=execute_request.task,
         )
 
-        response = await engine.execute(task, context, stream)
+        response = await engine.execute(
+            execute_request.task,
+            context,
+            execute_request.stream,
+        )
 
         # 记录执行历史
         execution = AgentExecution(
             agent_id=agent_id,
             status=response.status.value,
-            input_data={"task": task},
+            input_data={"task": execute_request.task},
             output_data={"content": response.content},
             started_at=time.time(),
             completed_at=time.time(),

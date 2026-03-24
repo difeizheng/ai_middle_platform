@@ -4,14 +4,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List
-import uuid
-import hashlib
+from typing import List, Optional
 
 from ..core.database import get_db
+from ..core.exceptions import NotFoundError, ConflictError
 from ..models.user import User
 from ..models.app import Application, APIKey
 from ..auth.dependencies import get_current_user
+from ..services.api_key_manager import (
+    create_api_key,
+    list_api_keys,
+    revoke_api_key,
+    rotate_api_key,
+    delete_api_key,
+)
 
 router = APIRouter()
 
@@ -60,6 +66,16 @@ async def create_application(
 ):
     """
     创建应用
+
+    返回格式：
+    {
+        "id": int,
+        "name": str,
+        "api_key": str,  # 完整 API Key（仅返回一次）
+        "api_secret": str,  # API Secret（仅返回一次）
+        "key_prefix": str,
+        "message": str
+    }
     """
     app = Application(
         name=name,
@@ -72,24 +88,20 @@ async def create_application(
     await db.commit()
     await db.refresh(app)
 
-    # 自动生成 API Key
-    api_key_str = f"sk_{uuid.uuid4().hex}"
-    api_key_hash = hashlib.sha256(api_key_str.encode()).hexdigest()
-
-    api_key = APIKey(
+    # 使用加密服务自动生成 API Key 和 Secret
+    key_info = await create_api_key(
+        db=db,
         app_id=app.id,
-        key=api_key_hash,
-        key_prefix=api_key_str[:10],
+        expires_days=None,  # 永不过期
     )
-
-    db.add(api_key)
-    await db.commit()
 
     return {
         "id": app.id,
         "name": app.name,
-        "api_key": api_key_str,  # 只在创建时返回一次
-        "message": "应用创建成功",
+        "api_key": key_info["api_key"],  # 完整 API Key（仅返回一次）
+        "api_secret": key_info["api_secret"],  # API Secret（仅返回一次）
+        "key_prefix": key_info["key_prefix"],
+        "message": "应用创建成功，请妥善保存 API Key 和 Secret",
     }
 
 
@@ -138,13 +150,12 @@ async def list_api_keys(
     """
     获取应用的 API Key 列表
     """
-    result = await db.execute(
-        select(APIKey).where(
-            APIKey.app_id == app_id,
-            APIKey.is_active == True,
-        )
-    )
-    keys = result.scalars().all()
+    # 验证应用归属
+    app = await db.get(Application, app_id)
+    if not app or app.owner_id != current_user.id:
+        raise NotFoundError(resource="应用")
+
+    keys = await list_api_keys(db=db, app_id=app_id)
 
     return {
         "total": len(keys),
@@ -153,9 +164,140 @@ async def list_api_keys(
                 "id": k.id,
                 "key_prefix": k.key_prefix,
                 "is_active": k.is_active,
+                "is_revoked": k.is_revoked,
                 "created_at": str(k.created_at),
                 "last_used_at": str(k.last_used_at) if k.last_used_at else None,
+                "expires_at": str(k.expires_at) if k.expires_at else None,
             }
             for k in keys
         ],
     }
+
+
+@router.post("/{app_id}/keys")
+async def create_new_api_key(
+    app_id: int,
+    expires_days: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    为应用创建新的 API Key
+
+    返回格式：
+    {
+        "id": int,
+        "api_key": str,  # 完整 API Key（仅返回一次）
+        "api_secret": str,  # API Secret（仅返回一次）
+        "key_prefix": str,
+        "expires_at": datetime,
+    }
+    """
+    # 验证应用归属
+    app = await db.get(Application, app_id)
+    if not app or app.owner_id != current_user.id:
+        raise NotFoundError(resource="应用")
+
+    key_info = await create_api_key(
+        db=db,
+        app_id=app_id,
+        expires_days=expires_days,
+    )
+
+    return {
+        "id": key_info["id"],
+        "api_key": key_info["api_key"],
+        "api_secret": key_info["api_secret"],
+        "key_prefix": key_info["key_prefix"],
+        "expires_at": key_info["expires_at"],
+        "message": "API Key 创建成功，请妥善保存",
+    }
+
+
+@router.post("/keys/{key_id}/rotate")
+async def rotate_key(
+    key_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    轮换 API Key
+
+    轮换后会生成新的 API Key 和 Secret，旧的会立即失效。
+
+    返回格式：
+    {
+        "id": int,
+        "api_key": str,  # 新 API Key（仅返回一次）
+        "api_secret": str,  # 新 API Secret（仅返回一次）
+        "key_prefix": str,
+    }
+    """
+    # 验证 Key 归属
+    key = await db.get(APIKey, key_id)
+    if not key:
+        raise NotFoundError(resource="API Key")
+
+    app = await db.get(Application, key.app_id)
+    if not app or app.owner_id != current_user.id:
+        raise NotFoundError(resource="应用")
+
+    key_info = await rotate_api_key(db=db, api_key_id=key_id)
+
+    return {
+        "id": key_info["id"],
+        "api_key": key_info["api_key"],
+        "api_secret": key_info["api_secret"],
+        "key_prefix": key_info["key_prefix"],
+        "message": "API Key 轮换成功，旧 Key 已失效",
+    }
+
+
+@router.post("/keys/{key_id}/revoke")
+async def revoke_key(
+    key_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    吊销 API Key
+
+    吊销后的 Key 无法恢复，如需使用请创建新的 Key。
+    """
+    # 验证 Key 归属
+    key = await db.get(APIKey, key_id)
+    if not key:
+        raise NotFoundError(resource="API Key")
+
+    app = await db.get(Application, key.app_id)
+    if not app or app.owner_id != current_user.id:
+        raise NotFoundError(resource="应用")
+
+    await revoke_api_key(db=db, api_key_id=key_id)
+
+    return {"message": "API Key 已吊销"}
+
+
+@router.delete("/keys/{key_id}")
+async def delete_key(
+    key_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    删除 API Key
+
+    删除操作不可恢复，请谨慎使用。
+    """
+    # 验证 Key 归属
+    key = await db.get(APIKey, key_id)
+    if not key:
+        raise NotFoundError(resource="API Key")
+
+    app = await db.get(Application, key.app_id)
+    if not app or app.owner_id != current_user.id:
+        raise NotFoundError(resource="应用")
+
+    await delete_api_key(db=db, api_key_id=key_id)
+
+    return {"message": "API Key 已删除"}
