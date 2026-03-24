@@ -12,6 +12,9 @@ import KnowledgeManagement from './pages/KnowledgeManagement';
 import ApplicationManagement from './pages/ApplicationManagement';
 import LogQuery from './pages/LogQuery';
 import SkillsMarket from './pages/SkillsMarket';
+import BillingManagement from './pages/BillingManagement';  // 计费管理
+import QuotaManagement from './pages/QuotaManagement';  // 配额管理
+import AlertManagement from './pages/AlertManagement';  // 告警中心
 
 // 受保护路由
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -42,6 +45,9 @@ function App() {
             <Route path="applications" element={<ApplicationManagement />} />
             <Route path="skills" element={<SkillsMarket />} />
             <Route path="logs" element={<LogQuery />} />
+            <Route path="billing" element={<BillingManagement />} />
+            <Route path="quota" element={<QuotaManagement />} />
+            <Route path="alerts" element={<AlertManagement />} />
           </Route>
         </Routes>
       </BrowserRouter>

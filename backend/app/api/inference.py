@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 import time
 import uuid
+import logging
 
 from ..core.database import get_db
 from ..core.config import settings
@@ -13,6 +14,9 @@ from ..models.user import User
 from ..auth.dependencies import get_current_user
 from ..services.llm import LLMService
 from ..services.embedding import EmbeddingService
+from ..services.billing_integration import charge_api_call
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -45,6 +49,34 @@ async def chat_completions(
         max_tokens=max_tokens,
     )
 
+    # 获取 token 使用量
+    total_tokens = response.tokens_used
+    prompt_tokens = getattr(response, 'input_tokens', 0)
+    completion_tokens = getattr(response, 'output_tokens', total_tokens)
+
+    # 计费（异步，不阻断响应）
+    try:
+        billing_result = await charge_api_call(
+            db=db,
+            user_id=current_user.id,
+            model_name=model,
+            tokens_used=total_tokens,
+            input_tokens=prompt_tokens,
+            output_tokens=completion_tokens,
+        )
+        # 记录计费信息到日志
+        if billing_result.get("charged"):
+            logger.info(
+                f"Billing: user={current_user.id}, model={model}, "
+                f"tokens={total_tokens}, amount={billing_result.get('amount')}"
+            )
+            # 如果有余额预警，在响应中返回警告
+            if billing_result.get("warning"):
+                logger.warning(billing_result["warning"])
+    except Exception as e:
+        # 计费失败不阻断请求，只记录日志
+        logger.error(f"Billing failed for user {current_user.id}: {e}")
+
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
         "object": "chat.completion",
@@ -61,10 +93,11 @@ async def chat_completions(
             }
         ],
         "usage": {
-            "prompt_tokens": 0,
-            "completion_tokens": response.tokens_used,
-            "total_tokens": response.tokens_used,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
         },
+        "billing": billing_result if settings.DEBUG else None,  # 仅在调试模式返回计费信息
     }
 
 
@@ -88,9 +121,29 @@ async def create_embeddings(
         input = [input]
 
     embeddings = []
+    total_tokens = 0
     for text in input:
         result = await embedding_service.embed(text)
         embeddings.append(result.embedding)
+        # 估算 token 数（按字符数 / 4 估算）
+        total_tokens += len(text) // 4
+
+    # 计费
+    try:
+        billing_result = await charge_api_call(
+            db=db,
+            user_id=current_user.id,
+            model_name=model,
+            tokens_used=total_tokens,
+            resource_type="embedding",
+        )
+        if billing_result.get("charged"):
+            logger.info(
+                f"Billing: user={current_user.id}, model={model}, "
+                f"type=embedding, tokens={total_tokens}, amount={billing_result.get('amount')}"
+            )
+    except Exception as e:
+        logger.error(f"Billing failed for user {current_user.id}: {e}")
 
     return {
         "object": "list",
@@ -104,8 +157,8 @@ async def create_embeddings(
         ],
         "model": model,
         "usage": {
-            "prompt_tokens": 0,
-            "total_tokens": 0,
+            "prompt_tokens": total_tokens,
+            "total_tokens": total_tokens,
         },
     }
 
@@ -135,6 +188,29 @@ async def generate(
         temperature=temperature,
         max_tokens=max_tokens,
     )
+
+    # 获取 token 使用量
+    total_tokens = response.tokens_used
+    prompt_tokens = getattr(response, 'input_tokens', len(prompt) // 4)
+    completion_tokens = getattr(response, 'output_tokens', total_tokens - prompt_tokens)
+
+    # 计费
+    try:
+        billing_result = await charge_api_call(
+            db=db,
+            user_id=current_user.id,
+            model_name=model,
+            tokens_used=total_tokens,
+            input_tokens=prompt_tokens,
+            output_tokens=completion_tokens,
+        )
+        if billing_result.get("charged"):
+            logger.info(
+                f"Billing: user={current_user.id}, model={model}, "
+                f"type=generate, tokens={total_tokens}, amount={billing_result.get('amount')}"
+            )
+    except Exception as e:
+        logger.error(f"Billing failed for user {current_user.id}: {e}")
 
     return {
         "id": f"gen-{uuid.uuid4().hex[:8]}",

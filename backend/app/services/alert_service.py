@@ -2,6 +2,7 @@
 告警服务
 
 负责告警规则匹配、告警触发和通知发送
+以及余额、配额、成本预警检查
 """
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -10,8 +11,10 @@ import asyncio
 from app.core.logger import get_logger
 from app.core.database import get_db_session
 from app.models.monitor import AlertRule, AlertHistory, SystemHealth
+from app.models.alert import WarningAlert
 from app.services.notification import get_notifier, send_alert
 from app.services.metrics import get_metric_collector
+from app.services.alert import WarningAlertService  # 新增预警服务
 
 logger = get_logger(__name__)
 
@@ -63,7 +66,7 @@ class AlertService:
         db = await get_db_session().__anext__()
 
         try:
-            # 获取所有启用的告警规则
+            # 1. 检查传统告警规则（基于监控指标）
             from sqlalchemy import select
             result = await db.execute(
                 select(AlertRule).where(AlertRule.is_active == True)
@@ -73,8 +76,28 @@ class AlertService:
             for rule in rules:
                 await self._evaluate_rule(rule, db)
 
+            # 2. 检查余额、配额、成本预警（新增）
+            await self._check_warning_alerts(db)
+
         finally:
             await db.close()
+
+    async def _check_warning_alerts(self, db):
+        """检查余额、配额、成本预警"""
+        try:
+            warning_service = WarningAlertService(db)
+
+            # 检查余额预警
+            await warning_service.check_balance_warning()
+
+            # 检查配额预警
+            await warning_service.check_quota_warning()
+
+            # 检查成本预警
+            await warning_service.check_cost_warning()
+
+        except Exception as e:
+            logger.error(f"预警检查出错：{e}")
 
     async def _evaluate_rule(self, rule: AlertRule, db):
         """评估告警规则"""

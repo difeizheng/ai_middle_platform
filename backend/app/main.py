@@ -17,6 +17,7 @@ from .services.skills import auto_register_builtin_skills
 from .services.health_checker import start_health_checker, stop_health_checker
 from .services.notification import setup_notification_channels
 from .services.alert_service import start_alert_service, stop_alert_service
+from .middleware.quota_check import setup_quota_middleware
 from .core.exceptions import (
     AppException,
     app_exception_handler,
@@ -89,6 +90,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 配置配额检查中间件
+setup_quota_middleware(app, enabled=True)
 
 
 @app.middleware("http")

@@ -2,8 +2,8 @@
 
 > 企业级 AI 能力基础设施 - 构建可持续的 AI 能力体系
 
-**版本：** v0.5.0
-**日期：** 2026 年 3 月 23 日
+**版本：** v1.0.0
+**日期：** 2026 年 3 月 24 日
 
 ---
 
@@ -133,6 +133,31 @@ npm run dev
 - **仪表盘** - 可配置的监控仪表盘和数据可视化
 - **监控 API** - `/metrics/*`, `/health/*`, `/alerts/*`, `/dashboards/*`
 
+### Phase 3 - 技术债务清理和性能优化（已完成）
+
+- **统一错误响应** - 标准化 API 错误格式
+- **API Key 加密存储** - Fernet + PBKDF2 加密
+- **输入验证系统** - Pydantic Schema 验证
+- **MCP 连接器扩展** - Elasticsearch/Oracle/SQL Server/Kafka
+- **性能优化** - 慢查询优化、缓存命中率提升、向量检索调优
+
+### Phase 4 - 生态建设（已完成）
+
+- **开发者门户** - API 文档中心、SDK 下载、开发者指南、示例代码
+- **合作伙伴计划** - 合作伙伴管理、认证体系（认证/金牌/白金）、权益管理
+- **行业解决方案** - 解决方案模板、案例库、最佳实践文档
+- **生态联盟** - 联盟成员管理、资源共享平台、合作机会对接、联盟活动
+
+### Phase 5 - 商业化运营（已完成）
+
+- **计费系统** - 计费策略、账户管理、实时计费、充值管理、统计报表 ✅
+- **配额管理** - 多级配额控制、配额类型、配额继承、超额处理 ✅
+- **使用量统计** - 实时统计、历史趋势、多维度分析、成本分析、预测分析 ✅
+- **支付渠道集成** - 支付宝/微信/银联接入 ✅
+- **账单和发票系统** - 月度账单、发票管理、邮件推送 ✅
+- **告警中心增强** - 余额/配额/成本预警、多渠道通知、订阅管理 ✅
+- **前端管理页面** - 计费管理、配额管理、告警中心 ✅
+
 ---
 
 ## 技术栈
@@ -202,6 +227,34 @@ curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:8000/api/v1/monitor/alerts/rules
 ```
 
+### Phase 4 新增 API
+
+```bash
+# 开发者门户 - 获取快速开始指南
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/developer/docs/quickstart
+
+# 开发者门户 - 获取 SDK 列表
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/developer/sdks
+
+# 合作伙伴 - 获取合作伙伴列表
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/partners
+
+# 解决方案 - 获取行业解决方案列表
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/solutions
+
+# 生态联盟 - 获取联盟成员列表
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/alliance/members
+
+# 生态联盟 - 获取资源共享平台
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/alliance/resources
+```
+
 ---
 
 ## 开发阶段
@@ -213,6 +266,12 @@ curl -H "Authorization: Bearer $TOKEN" \
 | Phase 2.2 | ✅ 完成 | MCP 连接器 |
 | Phase 2.3 | ✅ 完成 | Skills 市场 |
 | Phase 2.4 | ✅ 完成 | 运营监控 |
+| Phase 3 | ✅ 完成 | 技术债务清理和性能优化 |
+| Phase 4 | ✅ 完成 | 生态建设（开发者门户、合作伙伴、解决方案、生态联盟） |
+| Phase 5.1 | ✅ 完成 | 计费系统（计费策略、账户管理、实时计费） |
+| Phase 5.2 | ✅ 完成 | 配额管理（多级配额、周期管理、超额处理） |
+| Phase 5.3 | ✅ 完成 | 使用量统计（实时统计、趋势分析、多维度分析） |
+| Phase 5.4 | 🔄 进行中 | 支付渠道集成、账单和发票系统 |
 
 ---
 

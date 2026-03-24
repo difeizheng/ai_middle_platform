@@ -141,6 +141,20 @@ class Settings(BaseSettings):
     #     },
     # }
 
+    # ========== SMTP 邮件配置 ==========
+    SMTP_SERVER: str = "smtp.example.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "noreply@example.com"
+    SMTP_FROM_NAME: str = "AI 中台"
+    SMTP_USE_TLS: bool = True
+
+    # ========== 告警配置 ==========
+    BALANCE_WARNING_THRESHOLD: float = 100.0  # 余额预警阈值
+    QUOTA_WARNING_THRESHOLD: float = 0.8  # 配额预警阈值（80%）
+    COST_WARNING_THRESHOLD: float = 1000.0  # 成本预警阈值
+
     class Config:
         env_file = ".env"
         case_sensitive = True

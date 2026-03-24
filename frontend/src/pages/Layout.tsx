@@ -15,6 +15,9 @@ import {
   UserOutlined,
   LogoutOutlined,
   ShopOutlined,
+  WalletOutlined,
+  SafetyOutlined,
+  BellOutlined,
 } from '@ant-design/icons';
 import { useUserStore } from '@/store/userStore';
 
@@ -45,6 +48,21 @@ const menuItems = [
     key: '/skills',
     icon: <ShopOutlined />,
     label: 'Skills 市场',
+  },
+  {
+    key: '/billing',
+    icon: <WalletOutlined />,
+    label: '计费管理',
+  },
+  {
+    key: '/quota',
+    icon: <SafetyOutlined />,
+    label: '配额管理',
+  },
+  {
+    key: '/alerts',
+    icon: <BellOutlined />,
+    label: '告警中心',
   },
   {
     key: '/logs',
