@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any, List
 
 from ..core.database import get_db
 from ..services.billing_invoice import MonthlyBillService, InvoiceService, BillEmailService, BillingInvoiceManager
-from ..auth.jwt import get_current_user
+from ..auth.dependencies import get_current_user
 from ..models.user import User
 from ..models.billing import Account
 from ..models.billing_invoice import MonthlyBill, Invoice, InvoiceApplication

@@ -13,7 +13,7 @@ from app.models.billing import Account, BillingRecord
 from app.models.quota import Quota, QuotaUsage
 from app.models.user import User
 from app.core.config import settings
-from app.services.email import send_template_email
+from app.services.email import get_email_service, EMAIL_TEMPLATES
 
 
 class AlertChannelService:
@@ -469,10 +469,12 @@ class WarningAlertService:
         """
 
         try:
-            await send_template_email(
+            email_service = get_email_service()
+            email_service.send_email(
                 to=recipient,
                 subject=f"[{alert.severity.upper()}] {alert.alert_type.upper()} 预警通知 - {alert.alert_subtype}",
-                html_content=html_content,
+                content=html_content,
+                html=True,
             )
             return True
         except Exception as e:

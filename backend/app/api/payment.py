@@ -12,7 +12,7 @@ from typing import Optional, Dict, Any, List
 from ..core.database import get_db
 from ..services.payment import PaymentManager, PaymentService
 from ..models.payment import PaymentChannel, PaymentOrder, PaymentRefund, PaymentCallbackLog
-from ..auth.jwt import get_current_user
+from ..auth.dependencies import get_current_user
 from ..models.user import User
 from ..models.billing import Account
 from ..core.exceptions import create_error_response

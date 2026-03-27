@@ -1,7 +1,8 @@
 """
 依赖注入模块
 """
-from fastapi import Depends, HTTPException, status
+from typing import Optional
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError, jwt
@@ -54,6 +55,41 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+
+async def get_current_user_from_request(request: Request) -> Optional[User]:
+    """
+    从请求中获取当前用户（不强制要求登录）
+
+    Args:
+        request: FastAPI 请求对象
+
+    Returns:
+        用户对象或 None
+    """
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+
+        token = auth_header.split(" ")[1]
+        payload = decode_access_token(token)
+        if not payload:
+            return None
+
+        username = payload.get("sub")
+        if not username:
+            return None
+
+        async with async_session_maker() as session:
+            result = await session.execute(select(User).where(User.username == username))
+            user = result.scalar_one_or_none()
+
+            if user and user.is_active:
+                return user
+        return None
+    except Exception:
+        return None
 
 
 def require_role(required_role: str):

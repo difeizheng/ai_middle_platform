@@ -9,7 +9,7 @@ from typing import Optional
 
 from ..core.database import get_db
 from ..models.user import User
-from ..auth.jwt import get_current_user
+from ..auth.dependencies import get_current_user
 
 
 security = HTTPBearer()

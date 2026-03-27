@@ -198,6 +198,40 @@ class ConflictError(AppException):
         )
 
 
+class BusinessException(AppException):
+    """业务异常"""
+
+    def __init__(
+        self,
+        message: str = "业务处理失败",
+        detail: Optional[str] = None,
+        code: str = ErrorCode.INVALID_OPERATION,
+        status_code: int = status.HTTP_400_BAD_REQUEST,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            detail=detail,
+            status_code=status_code,
+        )
+
+
+class PaymentError(BusinessException):
+    """支付异常"""
+
+    def __init__(
+        self,
+        message: str = "支付处理失败",
+        detail: Optional[str] = None,
+    ):
+        super().__init__(
+            message=message,
+            detail=detail,
+            code=ErrorCode.INVALID_OPERATION,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class TooManyRequestsError(AppException):
     """请求过多错误"""
 
